@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken');
 require("dotenv").config();
 
 const app = express();
@@ -21,10 +22,67 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 async function run(){
   try{
+    const productsCollection = client.db("justLikeNew").collection("products");
+    const bookingsCollection = client.db("justLikeNew").collection("bookings");
+    const usersCollection = client.db("justLikeNew").collection("users");
 
+    // app.get("/products" , async(req,res)=>{
+    //   const query = {}
+    //   const options = await productsCollection.find(query).toArray();
+    //   res.send(options);
+    // })
+
+    app.get("/category/:name" , async(req,res)=>{
+      const name = req.params.name;
+      const query = {name:name}
+      const options = await productsCollection.find(query).toArray();
+      res.send(options);
+    })
+
+    // modal er data save krlam database e
+    
+    app.post("/bookings",async(req,res)=>{
+      const booking = req.body;
+      // console.log(booking);
+      const result = await bookingsCollection.insertOne(booking);
+      res.send(result);
+    })
+
+    // my order e dekahnor jonno aita 
+
+    app.get("/bookings",async(req,res)=>{
+      const email = req.query.email;
+      console.log("token",req.headers.authorization);
+      const query = {email:email};
+      const bookings = await bookingsCollection.find(query).toArray();
+      res.send(bookings);
+    })
+
+
+    // user k post krte aita use mane user database e save
+    app.post("/users",async(req,res)=>{
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    })
+
+    // USER THAKLE TOKEN DIBO
+    app.get('/jwt', async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      console.log(user);
+      
+      if (user) {
+          const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, { expiresIn: '9d' })
+          return res.send({ accessToken: token });
+      }
+      res.status(403).send({ accessToken: '' })
+      
+  });
   }
   finally{
-    
+
   }
 }
 
