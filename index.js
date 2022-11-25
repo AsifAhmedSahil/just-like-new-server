@@ -138,6 +138,21 @@ async function run(){
     const user = await usersCollection.findOne(query);
     res.send({isBuyer: user?.role === "Buyer"});
   })
+
+  // products data send to the server
+  app.post("/products",async(req,res)=>{
+    const product = req.body;
+    const result = await productsCollection.insertOne(product)
+    res.send(result);
+  })
+
+  // try for find seller product by using email
+  app.get("/products", async(req,res)=>{
+    const email = req.query.email;
+      const query = { email };
+      const user = await productsCollection.findOne(query);
+      res.send(user);
+  })
   }
   finally{
 
