@@ -130,6 +130,14 @@ async function run(){
     const user = await usersCollection.findOne(query);
     res.send({isSeller: user?.role === "Seller"});
   })
+
+  // check user is buyer or not
+  app.get("/users/buyer/:email", async(req,res)=>{
+    const email = req.params.email;
+    const query = {email}
+    const user = await usersCollection.findOne(query);
+    res.send({isBuyer: user?.role === "Buyer"});
+  })
   }
   finally{
 
