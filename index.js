@@ -20,6 +20,29 @@ console.log(uri)
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
+function verifyJWT(req, res, next) {
+
+  const authHeader = req.headers.authorization;
+  // console.log(req.headers)
+  if (!authHeader) {
+      return res.status(401).send('unauthorized access');
+  }
+
+  const token = authHeader.split(' ')[1];
+  console.log(token)
+
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+    console.log(decoded)
+      if (err) {
+        console.log("error from verify jwt");
+          return res.status(403).send({ message: 'forbidden access' })
+      }
+      req.decoded = decoded;
+      next();
+  })
+
+}
+
 async function run(){
   try{
     const productsCollection = client.db("justLikeNew").collection("products");
@@ -50,9 +73,13 @@ async function run(){
 
     // my order e dekahnor jonno aita 
 
-    app.get("/bookings",async(req,res)=>{
+    app.get("/bookings",verifyJWT,async(req,res)=>{
       const email = req.query.email;
-      console.log("token",req.headers.authorization);
+      const decodedEmail = req.decoded.email;
+        
+        if (email !== decodedEmail) {
+            return res.status(403).send({ message: 'forbidden access' });
+        }
       const query = {email:email};
       const bookings = await bookingsCollection.find(query).toArray();
       res.send(bookings);
@@ -80,6 +107,29 @@ async function run(){
       res.status(403).send({ accessToken: '' })
       
   });
+
+  // for all user
+  app.get("/users",async(req,res)=>{
+    const query = {}
+    const users = await usersCollection.find(query).toArray()
+    res.send(users);
+  })
+
+   // check user is admin or not
+   app.get("/users/admin/:email", async(req,res)=>{
+    const email = req.params.email;
+    const query = {email}
+    const user = await usersCollection.findOne(query);
+    res.send({isAdmin: user?.role === "admin"});
+  })
+
+  // check user is seller or not
+  app.get("/users/seller/:email", async(req,res)=>{
+    const email = req.params.email;
+    const query = {email}
+    const user = await usersCollection.findOne(query);
+    res.send({isSeller: user?.role === "Seller"});
+  })
   }
   finally{
 
