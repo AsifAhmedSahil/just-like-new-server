@@ -149,6 +149,14 @@ async function run(){
     res.send({isSeller: user?.role === "Seller"});
   })
 
+  // seller verify
+  app.get("/users/seller/:email", async(req,res)=>{
+    const email = req.params.email;
+    const query = {email}
+    const user = await usersCollection.findOne(query);
+    res.send({isVerified: user?.verify === "verified"});
+  })
+
   // check user is buyer or not
   app.get("/users/buyer/:email", async(req,res)=>{
     const email = req.params.email;
@@ -195,6 +203,25 @@ async function run(){
     const result = await usersCollection.deleteOne(filter)
     res.send(result);
   })
+
+  // app.get("/user/seller/:email",async(req,res)=>{
+  //   const email = req.query.email;
+  //   console.log(email);
+  //   const query = {email:email}
+  //   const user = await usersCollection.findOne(query);
+  //   console.log(user)
+  //   res.send({isverify:user?.verify === "verified"});
+  //   res.send(user);
+  // })
+
+  app.get('/user/seller/:email', async (req, res) => {
+    const email = req.params.email;
+    console.log(email);
+    const query = { email }
+    const user = await usersCollection.findOne(query);
+    console.log(user)
+    res.send({isverify:user?.verify === "verified"});
+})
 
   // for payment api
 
